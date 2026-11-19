@@ -265,6 +265,8 @@ export const FloatingHeroSprite: React.FC<FloatingHeroSpriteProps> = ({
         src={src}
         alt={alt}
         draggable={false}
+        loading="eager"
+        decoding="sync"
         className="relative z-10 h-full w-full object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)] animate-[floatBob_3.2s_ease-in-out_infinite]"
         style={delayMs ? { animationDelay: `${delayMs}ms` } : undefined}
       />

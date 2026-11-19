@@ -1,7 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { registerSW } from 'virtual:pwa-register';
 import App from './App';
+import { preloadAllGameAssets } from './data/assetPreloader';
 import './index.css';
+
+if (
+  typeof window !== 'undefined' &&
+  window.location.hostname !== 'appassets.androidplatform.net' &&
+  'serviceWorker' in navigator
+) {
+  registerSW({ immediate: true });
+}
+
+preloadAllGameAssets();
 
 interface ErrorBoundaryState {
   hasError: boolean;

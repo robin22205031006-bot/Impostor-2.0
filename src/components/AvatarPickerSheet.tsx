@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Sparkles, X } from 'lucide-react';
+import { prioritizeAssets } from '../data/assetPreloader';
 import {
   AVATAR_FILTER_LABELS,
   AVATAR_POSE_META,
@@ -64,6 +65,17 @@ export const AvatarPickerSheet: React.FC<AvatarPickerSheetProps> = ({
       setPreviewPose(target.avatarPose);
     }
   }, [isOpen, initialPlayerId, players]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const char = AvatarCatalog.findById(previewAvatarId);
+    prioritizeAssets([
+      char.baseImage,
+      char.actionImage,
+      char.skillImage,
+      char.stanceImage,
+    ]);
+  }, [isOpen, previewAvatarId]);
 
   const handleSwitchPlayer = (player: LocalPlayer) => {
     setActivePlayerId(player.id);

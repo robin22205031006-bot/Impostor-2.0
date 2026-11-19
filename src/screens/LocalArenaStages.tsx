@@ -449,6 +449,8 @@ export const LocalVotingContent: React.FC<LocalVotingContentProps> = ({
         <img
           src="/assets/images/img_voting_table_banner.jpg"
           alt="Secret Tribunal Voting Table"
+          loading="eager"
+          decoding="sync"
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#16101E] via-[#16101E]/40 to-transparent" />
@@ -697,6 +699,8 @@ export const LocalResultsContent: React.FC<LocalResultsContentProps> = ({
               : '/assets/images/img_outcome_impostor_win.jpg'
           }
           alt={state.crewWon ? 'Agents Victory' : 'Impostor Victory'}
+          loading="eager"
+          decoding="sync"
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#16101E] via-[#16101E]/35 to-transparent" />

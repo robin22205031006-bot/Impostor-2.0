@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BellRing, Clock, Download, Smartphone, Volume2, X } from 'lucide-react';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 import { GoldCtaButton, PlumTogglePill } from './ImpostorWizardComponents';
 
 interface SettingsMenuSheetProps {
@@ -28,6 +29,8 @@ export const SettingsMenuSheet: React.FC<SettingsMenuSheetProps> = ({
   onClose,
 }) => {
   const [apkDownloadAvailable, setApkDownloadAvailable] = useState(false);
+  const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
+  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -203,6 +206,57 @@ export const SettingsMenuSheet: React.FC<SettingsMenuSheetProps> = ({
                 <Download className="h-3.5 w-3.5" />
                 <span>Download</span>
               </a>
+            </div>
+          )}
+          {!isInstalled && (isInstallable || isIOS) && (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#F4CD6C]/35 bg-[#3A2F17]/40 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F4CD6C]/15 text-[#F4CD6C]">
+                  <Download className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="font-display text-sm font-bold text-[#F7F2EC]">
+                    Install Offline App
+                  </div>
+                  <div className="text-xs text-[#B7ABC8]">
+                    Save all avatars &amp; packs on this device
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (isInstallable) {
+                    void install();
+                  } else if (isIOS) {
+                    setShowIOSInstallGuide(true);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#F4CD6C] px-3.5 py-2 text-xs font-extrabold text-[#1D1626] transition hover:bg-[#FFDE8A]"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Install</span>
+              </button>
+            </div>
+          )}
+
+          {showIOSInstallGuide && (
+            <div className="rounded-2xl border border-[#423554] bg-[#16101E] p-4 text-xs text-[#B7ABC8]">
+              <div className="flex items-center justify-between font-display text-sm font-bold text-[#F7F2EC]">
+                <span>Install on iPhone / iPad</span>
+                <button
+                  type="button"
+                  onClick={() => setShowIOSInstallGuide(false)}
+                  className="text-[#887B9B] hover:text-[#F7F2EC]"
+                >
+                  Close
+                </button>
+              </div>
+              <p className="mt-1.5 leading-relaxed">
+                1. Tap the <strong className="text-[#F7F2EC]">Share</strong> button in Safari&apos;s toolbar.
+                <br />
+                2. Tap <strong className="text-[#F7F2EC]">Add to Home Screen</strong> to keep all avatars cached offline.
+              </p>
             </div>
           )}
         </div>
