@@ -1,41 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$ROOT_DIR"
+APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
 
-PREBUILT_APK="$ROOT_DIR/apk/Impostor.apk"
-BUILT_APK="$ROOT_DIR/app/build/outputs/apk/debug/app-debug.apk"
-
-if [ "${1:-}" = "--rebuild" ] || [ ! -f "$PREBUILT_APK" ]; then
-  echo "==> Building Impostor APK from source..."
-  chmod +x ./gradlew
-  ./gradlew assembleDebug --no-daemon
-  mkdir -p "$ROOT_DIR/apk"
-  cp "$BUILT_APK" "$PREBUILT_APK"
+if [ ! -f "$APK_PATH" ] && [ -f "apk/Impostor.apk" ]; then
+  APK_PATH="apk/Impostor.apk"
 fi
 
-APK_TO_INSTALL="$PREBUILT_APK"
-echo "==> Ready APK: $APK_TO_INSTALL"
-
-if command -v adb >/dev/null 2>&1; then
-  DEVICES="$(adb devices | awk 'NR>1 && $2=="device" {print $1}')"
-  if [ -n "$DEVICES" ]; then
-    echo "==> Installing onto connected Android device..."
-    adb install -r "$APK_TO_INSTALL"
-    echo "==> Installed! Launching Impostor..."
-    adb shell monkey -p com.aistudio.impostorgame.qvnxkp -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
-    echo "==> Done."
-    exit 0
-  fi
+if [ ! -f "$APK_PATH" ]; then
+  echo "APK not found. Building debug APK first..."
+  npm run build
+  rm -rf app/src/main/assets/www
+  mkdir -p app/src/main/assets/www
+  cp -r dist/* app/src/main/assets/www/
+  ./gradlew assembleDebug
+  APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
 fi
 
-if command -v termux-open >/dev/null 2>&1; then
-  echo "==> Opening APK installer via Termux..."
-  termux-open "$APK_TO_INSTALL"
-  exit 0
+if ! command -v adb >/dev/null 2>&1; then
+  echo "Error: adb is not installed or not in PATH."
+  echo "You can still copy '$APK_PATH' directly to your Android device and tap it to install."
+  exit 1
 fi
 
-echo ""
-echo "Tap or transfer this file to your Android phone to install:"
-echo "  $APK_TO_INSTALL"
+echo "Installing $APK_PATH to connected Android device..."
+adb install -r "$APK_PATH"
+echo "Done! Launch 'Remix Impostor' on your device."

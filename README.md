@@ -1,35 +1,37 @@
-# Impostor — Android Party Deduction Game
+# Remix Impostor (Android + Web)
 
-Standalone offline Android APK built with Kotlin & Jetpack Compose.  
-**100% Free & Offline — zero Firebase, zero accounts, zero API keys, and zero paid services.**
+A social-deduction party game built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**, packaged into a native **Android APK** (`com.aistudio.impostorgame.jpedan`) for direct device installation.
 
-## Instant Install on Your Android Phone (via Git / GitHub)
-A ready-to-install signed debug APK is already included right inside this repository at:
-- **[`apk/Impostor.apk`](./apk/Impostor.apk)**
+## Game Modes
 
-### Install Directly on Phone (No PC Required)
-1. Clone or open this repository on GitHub from your phone.
-2. Open **[`apk/Impostor.apk`](./apk/Impostor.apk)** and tap **Download** (or View raw).
-3. Tap the downloaded `Impostor.apk` file on your Android phone to install it (enable *Install unknown apps* if prompted).
+- **One Phone (Pass & Play)**:
+  - 5-step setup wizard: Welcome hero lineup, Mode selection, Player roster (2–16 players) & 22-character **Avatar Deck** (4 stance poses each), Rules & Tactical Special Roles (`Agent Killer`, `Savior Agent`, `Agent Director`, `Blind Suspicion Prediction`), and Word Packs with Pack Inspector & `localStorage` Custom Words.
+  - 3D perspective role reveal cards with Web Audio synthesized sound cues.
+  - Live speaking arena with circular SVG countdown timer (or Free Talk), private card peeks, Impostor word-steal guess, and Emergency Meeting siren alert.
+  - Pass-the-phone secret voting tribunal, dramatic elimination reveal overlay, and multi-round scoreboard.
+- **Role Assignment (Quick Deal Lobby)**:
+  - Instant role dealing (`Deal`, `Reveal All`, `Hide All`, per-card tap reveal), Category Word Generator, timed discussion with auto-advance, Emergency Meeting alert, secret voter-tab voting, and Round Outcome debrief.
 
-### Install in 1 Command via Git + ADB (Linux / macOS / Termux / Windows)
+## Install Directly to Android Device
+
+Pre-built APK packages are generated at:
+- `apk/Impostor.apk`
+- `app/build/outputs/apk/debug/app-debug.apk`
+
+### Option 1: Copy APK to phone
+Transfer `apk/Impostor.apk` (or `app/build/outputs/apk/debug/app-debug.apk`) to your Android phone and open it to install.
+
+### Option 2: Install via USB Debugging (`adb`)
 ```bash
-git clone <your-repo-url>
-cd Impostor
+./install-apk.sh        # macOS / Linux
+install-apk.bat         # Windows
 ```
-- **Linux / macOS / Termux**: `./install-apk.sh` (installs the prebuilt `apk/Impostor.apk` immediately if no build is needed, or pass `--rebuild` to recompile from source)
-- **Windows**: `install-apk.bat`
 
-### Build From Source Yourself (Optional)
-Requirements: **JDK 17** + **Android SDK**
+## Build from Source
+
 ```bash
+npm install
+npm run build
+rm -rf app/src/main/assets/www && mkdir -p app/src/main/assets/www && cp -r dist/* app/src/main/assets/www/
 ./gradlew assembleDebug
 ```
-The compiled APK is output to `app/build/outputs/apk/debug/app-debug.apk`.
-
-### Pushing Updates Back to GitHub
-If pushing back to an existing repository that previously contained `.github/workflows/build-apk.yml` fails from an OAuth integration (or if remote history diverged):
-1. Push to a **new repository/branch** from the export UI, **or**
-2. Download the project ZIP, extract it into your local `git clone` of the repository (keeping `.git/` intact), and push using `git push` from your terminal.
-3. Optional: to re-enable GitHub Actions APK releases from a local Git push, copy `docs/build-apk-workflow.yml` to `.github/workflows/build-apk.yml`.
-

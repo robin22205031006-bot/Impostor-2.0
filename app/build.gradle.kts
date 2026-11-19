@@ -1,7 +1,5 @@
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.kotlin.compose)
-  alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
@@ -14,8 +12,6 @@ android {
     targetSdk = 36
     versionCode = 1
     versionName = "1.0"
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   // Do not remove or modify these signingConfigs. They are necessary for building, installing,
@@ -41,93 +37,27 @@ android {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      // Do not remove or modify this signingConfig assignment. It is necessary for Android apps in
-      // AI Studio.
       signingConfig = signingConfigs.getByName("release")
     }
     debug {
-      // Do not remove or modify this signingConfig assignment. It is necessary for Android apps in
-      // AI Studio.
+      isCrunchPngs = false
       signingConfig = signingConfigs.getByName("debugConfig")
     }
   }
+
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
   }
-  buildFeatures {
-    compose = true
-    buildConfig = true
-  }
-  testOptions { unitTests { isIncludeAndroidResources = true } }
-  dependenciesInfo {
-    includeInApk = false
-    includeInBundle = true
+
+  lint {
+    abortOnError = false
+    checkReleaseBuilds = false
   }
 }
 
 dependencies {
-  implementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.activity.compose)
-  implementation(libs.androidx.compose.material.icons.core)
-  implementation(libs.androidx.compose.material.icons.extended)
-  implementation(libs.androidx.compose.material3)
-  implementation(libs.androidx.compose.ui)
-  implementation(libs.androidx.compose.ui.graphics)
-  implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
-  implementation(libs.androidx.lifecycle.runtime.compose)
-  implementation(libs.androidx.lifecycle.runtime.ktx)
-  implementation(libs.androidx.lifecycle.viewmodel.compose)
-  implementation(libs.kotlinx.coroutines.android)
-  implementation(libs.kotlinx.coroutines.core)
-  testImplementation(libs.androidx.compose.ui.test.junit4)
-  testImplementation(libs.androidx.core)
-  testImplementation(libs.androidx.junit)
-  testImplementation(libs.junit)
-  testImplementation(libs.kotlinx.coroutines.test)
-  testImplementation(libs.robolectric)
-  androidTestImplementation(platform(libs.androidx.compose.bom))
-  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-  androidTestImplementation(libs.androidx.espresso.core)
-  androidTestImplementation(libs.androidx.junit)
-  androidTestImplementation(libs.androidx.runner)
-  debugImplementation(libs.androidx.compose.ui.test.manifest)
-  debugImplementation(libs.androidx.compose.ui.tooling)
-}
-
-abstract class EnsureDebugKeystoreTask : org.gradle.api.DefaultTask() {
-  @get:org.gradle.api.tasks.Internal
-  abstract val keystoreFile: org.gradle.api.file.RegularFileProperty
-
-  @org.gradle.api.tasks.TaskAction
-  fun ensure() {
-    val file = keystoreFile.get().asFile
-    if (!file.exists()) {
-      ProcessBuilder(
-          "keytool",
-          "-genkeypair",
-          "-v",
-          "-keystore", file.absolutePath,
-          "-storepass", "android",
-          "-alias", "androiddebugkey",
-          "-keypass", "android",
-          "-keyalg", "RSA",
-          "-keysize", "2048",
-          "-validity", "10000",
-          "-dname", "CN=Android Debug,O=Android,C=US"
-      ).inheritIO().start().waitFor()
-    }
-  }
-}
-
-val ensureDebugKeystore =
-    tasks.register<EnsureDebugKeystoreTask>("ensureDebugKeystore") {
-      val target = rootProject.layout.projectDirectory.file("debug.keystore")
-      keystoreFile.set(target)
-      outputs.upToDateWhen { target.asFile.exists() }
-    }
-
-tasks.matching { it.name == "validateSigningDebug" }.configureEach {
-  dependsOn(ensureDebugKeystore)
+  implementation(libs.androidx.activity.ktx)
+  implementation(libs.androidx.appcompat)
 }

@@ -1,44 +1,29 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal
 
-cd /d "%~dp0"
+set APK_PATH=app\build\outputs\apk\debug\app-debug.apk
 
-set "PREBUILT_APK=%CD%\apk\Impostor.apk"
-set "BUILT_APK=%CD%\app\build\outputs\apk\debug\app-debug.apk"
-
-if /I "%~1"=="--rebuild" goto rebuild
-if not exist "%PREBUILT_APK%" goto rebuild
-goto install
-
-:rebuild
-echo ==^> Building Impostor APK from source...
-call gradlew.bat assembleDebug --no-daemon
-if errorlevel 1 (
-    echo ERROR: Gradle build failed. Make sure JDK 17+ and Android SDK are installed.
-    exit /b 1
+if not exist "%APK_PATH%" if exist "apk\Impostor.apk" (
+  set APK_PATH=apk\Impostor.apk
 )
-if not exist "%CD%\apk" mkdir "%CD%\apk"
-copy /Y "%BUILT_APK%" "%PREBUILT_APK%" >nul
 
-:install
-echo ==^> Ready APK: %PREBUILT_APK%
+if not exist "%APK_PATH%" (
+  echo APK not found. Building debug APK first...
+  call npm run build
+  if exist app\src\main\assets\www rmdir /s /q app\src\main\assets\www
+  mkdir app\src\main\assets\www
+  xcopy /E /I /Y dist\* app\src\main\assets\www\ >nul
+  call gradlew.bat assembleDebug
+  set APK_PATH=app\build\outputs\apk\debug\app-debug.apk
+)
 
 where adb >nul 2>nul
-if %errorlevel%==0 (
-    for /f "skip=1 tokens=1,2" %%A in ('adb devices') do (
-        if "%%B"=="device" (
-            echo ==^> Installing onto connected Android device %%A...
-            adb -s %%A install -r "%PREBUILT_APK%"
-            if not errorlevel 1 (
-                adb -s %%A shell monkey -p com.aistudio.impostorgame.qvnxkp -c android.intent.category.LAUNCHER 1 >nul 2>nul
-                echo ==^> Installed and launched!
-                exit /b 0
-            )
-        )
-    )
+if errorlevel 1 (
+  echo Error: adb is not installed or not in PATH.
+  echo You can copy "%APK_PATH%" directly to your Android phone and open it to install.
+  exit /b 1
 )
 
-echo.
-echo No USB/wireless ADB device detected.
-echo Copy this APK to your Android phone and tap it to install:
-echo   %PREBUILT_APK%
+echo Installing %APK_PATH% to connected Android device...
+adb install -r "%APK_PATH%"
+echo Done! Launch Remix Impostor on your device.
