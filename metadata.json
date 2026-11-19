@@ -1,0 +1,8 @@
+{
+  "name": "Remix Impostor",
+  "description": "Imported from GitHub: robin22205031006-bot/Impostor",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

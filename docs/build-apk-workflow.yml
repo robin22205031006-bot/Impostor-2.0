@@ -1,0 +1,60 @@
+name: Build & Release Android APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Standalone Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run unit tests & build Debug APK
+        run: ./gradlew testDebugUnitTest assembleDebug --no-daemon
+
+      - name: Prepare APK filename
+        run: cp app/build/outputs/apk/debug/app-debug.apk Impostor-debug.apk
+
+      - name: Upload APK workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Impostor-debug-apk
+          path: Impostor-debug.apk
+
+      - name: Publish direct-download GitHub Release APK
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Impostor Latest Build
+          body: |
+            Standalone offline Android APK (no Firebase, no Google Sign-In, no `.env` secrets required).
+            Download **Impostor-debug.apk** below and tap it on your Android phone to install.
+          files: Impostor-debug.apk
+          overwrite: true

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Impostor</string>
+    <string name="category_label">CATEGORY</string>
+    <string name="genre_label">Genre</string>
+</resources>
