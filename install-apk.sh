@@ -3,18 +3,10 @@ set -euo pipefail
 
 APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
 
-if [ ! -f "$APK_PATH" ] && [ -f "apk/Impostor.apk" ]; then
-  APK_PATH="apk/Impostor.apk"
-fi
-
 if [ ! -f "$APK_PATH" ]; then
   echo "APK not found. Building debug APK first..."
   npm run build
-  rm -rf app/src/main/assets/www
-  mkdir -p app/src/main/assets/www
-  cp -r dist/* app/src/main/assets/www/
   ./gradlew assembleDebug
-  APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
 fi
 
 if ! command -v adb >/dev/null 2>&1; then

@@ -5,6 +5,7 @@ import { getRoleVisualStyle, ROLE_IDENTITY_META } from '../theme/palette';
 import { EliminatedPlayerReveal } from '../types/game';
 import { CharacterAvatarThumbnail } from './AvatarCardGraphics';
 import { RoleEmblemBadge, RoleEmblemChip } from './RoleEmblem';
+import { RoundCelebrationFx } from './RoundCelebrationFx';
 
 interface EliminationRevealOverlayProps {
   visible: boolean;
@@ -62,7 +63,18 @@ export const EliminationRevealOverlay: React.FC<
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#16101E]/95 p-5 backdrop-blur-md">
-      <div className="w-full max-w-lg rounded-3xl border border-[#423554] bg-[#241C2F] p-6 shadow-2xl">
+      {revealed && (
+        <RoundCelebrationFx outcome={crewWon ? 'agents' : 'impostor'} />
+      )}
+      <div
+        className={`relative z-10 w-full max-w-lg rounded-3xl border bg-[#241C2F] p-6 shadow-2xl ${
+          revealed
+            ? crewWon
+              ? 'border-[#1AE682]/60 animate-[verdictPop_520ms_cubic-bezier(0.22,1,0.36,1)]'
+              : 'border-[#FF3E5B]/75 animate-[screenShake_650ms_cubic-bezier(0.36,0.07,0.19,0.97)]'
+            : 'border-[#423554]'
+        }`}
+      >
         {!revealed ? (
           <div className="py-10 text-center">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#F4CD6C]/70 bg-[#3A2F17] text-[#F4CD6C] animate-pulse">

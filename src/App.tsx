@@ -172,7 +172,7 @@ export const App: React.FC = () => {
       });
 
     const verdictTitle = localState.crewWon
-      ? 'CREW WINS!'
+      ? 'AGENTS WINS!'
       : 'IMPOSTOR SURVIVES!';
     const verdictSubtitle = localState.impostorGuessCorrect
       ? 'The impostor guessed the exact secret word and stole the round.'

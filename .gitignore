@@ -12,5 +12,6 @@ build/
 local.properties
 .build-outputs/
 *.apk
-!apk/
-!apk/Impostor.apk
+apk/
+app/src/main/assets/www/
+debug.keystore.base64

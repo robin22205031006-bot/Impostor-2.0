@@ -661,7 +661,13 @@ export const LocalResultsContent: React.FC<LocalResultsContentProps> = ({
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-5 px-5 pb-12 pt-2">
       {/* Big Reveal Title */}
-      <div className="text-center">
+      <div
+        className={`text-center ${
+          state.crewWon
+            ? 'animate-[verdictPop_520ms_cubic-bezier(0.22,1,0.36,1)]'
+            : 'animate-[screenShake_650ms_cubic-bezier(0.36,0.07,0.19,0.97)]'
+        }`}
+      >
         <div className="font-mono-label text-[10px] font-bold uppercase tracking-[0.24em] text-[#F4CD6C]">
           THE BIG REVEAL
         </div>
@@ -671,7 +677,7 @@ export const LocalResultsContent: React.FC<LocalResultsContentProps> = ({
             color: state.crewWon ? PALETTE.normalGlow : PALETTE.impostorGlow,
           }}
         >
-          {state.crewWon ? 'BUSTED!' : 'FOOLED YOU!'}
+          {state.crewWon ? 'AGENTS WINS!' : 'IMPOSTOR SURVIVES!'}
         </h2>
         <p className="mt-1 text-xs font-semibold text-[#B7ABC8]">
           {state.impostorGuessCorrect

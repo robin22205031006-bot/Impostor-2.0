@@ -50,6 +50,12 @@ android {
     targetCompatibility = JavaVersion.VERSION_11
   }
 
+  sourceSets {
+    getByName("main") {
+      assets.srcDirs("src/main/assets", "../dist")
+    }
+  }
+
   lint {
     abortOnError = false
     checkReleaseBuilds = false

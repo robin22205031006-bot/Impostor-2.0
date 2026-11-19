@@ -64,8 +64,8 @@ class MainActivity : ComponentActivity() {
           }
           val rawPath = url.path ?: "/"
           val relativePath = when {
-            rawPath == "/" || rawPath.isEmpty() -> "www/index.html"
-            else -> "www/${rawPath.trimStart('/')}"
+            rawPath == "/" || rawPath.isEmpty() -> "index.html"
+            else -> rawPath.trimStart('/')
           }
           return loadAssetResponse(relativePath)
         }
@@ -121,28 +121,32 @@ class MainActivity : ComponentActivity() {
   }
 
   private fun loadAssetResponse(assetPath: String): WebResourceResponse {
-    val cleanPath = assetPath.replace("..", "")
-    return try {
-      val stream = assets.open(cleanPath)
-      val headers = mapOf("Access-Control-Allow-Origin" to "*")
-      WebResourceResponse(
-        mimeTypeFor(cleanPath),
-        "UTF-8",
-        200,
-        "OK",
-        headers,
-        stream
-      )
-    } catch (_: IOException) {
-      WebResourceResponse(
-        "text/plain",
-        "UTF-8",
-        404,
-        "Not Found",
-        emptyMap(),
-        ByteArrayInputStream(ByteArray(0))
-      )
+    val cleanPath = assetPath.replace("..", "").trimStart('/')
+    val candidates = listOf(cleanPath, "www/$cleanPath")
+    for (candidate in candidates) {
+      try {
+        val stream = assets.open(candidate)
+        val headers = mapOf("Access-Control-Allow-Origin" to "*")
+        return WebResourceResponse(
+          mimeTypeFor(candidate),
+          "UTF-8",
+          200,
+          "OK",
+          headers,
+          stream
+        )
+      } catch (_: IOException) {
+        // Try next candidate path
+      }
     }
+    return WebResourceResponse(
+      "text/plain",
+      "UTF-8",
+      404,
+      "Not Found",
+      emptyMap(),
+      ByteArrayInputStream(ByteArray(0))
+    )
   }
 
   private fun mimeTypeFor(path: String): String {

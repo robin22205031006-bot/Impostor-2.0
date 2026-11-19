@@ -4,6 +4,7 @@ import { AvatarCatalog } from '../data/avatarCatalog';
 import { GameState, PlayerRole, RoundOutcome } from '../types/game';
 import { CharacterAvatarThumbnail } from './AvatarCardGraphics';
 import { GoldCtaButton } from './ImpostorWizardComponents';
+import { RoundCelebrationFx } from './RoundCelebrationFx';
 
 interface RoundOutcomeScreenProps {
   gameState: GameState;
@@ -27,9 +28,15 @@ export const RoundOutcomeScreen: React.FC<RoundOutcomeScreenProps> = ({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 pb-10">
+      <RoundCelebrationFx outcome={isVictory ? 'agents' : 'impostor'} />
+
       {/* Victory / Defeat Hero Card */}
       <div
-        className="relative overflow-hidden rounded-3xl border-2 p-6 text-center"
+        className={`relative overflow-hidden rounded-3xl border-2 p-6 text-center ${
+          isVictory
+            ? 'animate-[verdictPop_520ms_cubic-bezier(0.22,1,0.36,1)]'
+            : 'animate-[screenShake_650ms_cubic-bezier(0.36,0.07,0.19,0.97)]'
+        }`}
         style={{
           borderColor: isVictory ? '#1AE682' : '#FF3E5B',
           background: isVictory
@@ -56,7 +63,7 @@ export const RoundOutcomeScreen: React.FC<RoundOutcomeScreenProps> = ({
           className="mt-3 font-mono-label text-xs font-extrabold uppercase tracking-[0.24em]"
           style={{ color: isVictory ? '#5CFFB0' : '#FF7A8F' }}
         >
-          {isVictory ? 'VICTORY' : 'DEFEAT'}
+          {isVictory ? 'AGENTS WINS!' : 'IMPOSTOR SURVIVES!'}
         </div>
 
         <h2 className="mt-1 font-display text-3xl font-black text-[#F7F2EC]">
