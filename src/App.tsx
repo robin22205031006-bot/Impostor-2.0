@@ -281,10 +281,10 @@ export const App: React.FC = () => {
         </header>
       )}
 
-      {/* Error Banner */}
+      {/* Floating Error Toast Banner */}
       {localState.errorBanner && (
-        <div className="mx-auto mt-3 max-w-xl px-5">
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#FF3E5B]/60 bg-[#341624] px-4 py-3 text-xs font-bold text-[#FF7A8F]">
+        <div className="fixed left-1/2 top-3 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#FF3E5B]/80 bg-[#341624]/95 px-4 py-3 text-xs font-bold text-[#FF7A8F] shadow-2xl backdrop-blur-md">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{localState.errorBanner}</span>

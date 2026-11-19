@@ -119,6 +119,31 @@ export const GameSetupScreen: React.FC<GameSetupScreenProps> = ({
   const [newGenreText, setNewGenreText] = useState('');
   const [newHintText, setNewHintText] = useState('');
 
+  const allCategories = wordBankSnapshot.categories;
+  const filteredCategories = useMemo(() => {
+    return allCategories.filter((cat) => {
+      const isCustom = WordBank.isCustomCategory(cat);
+      const isAll = cat === CATEGORY_ALL;
+      const isFav = state.favoritePacks.has(cat);
+
+      if (packFilter === 'BUILTIN' && (isCustom || isAll)) return false;
+      if (packFilter === 'CUSTOM' && !isCustom) return false;
+      if (packFilter === 'FAVORITES' && !isFav) return false;
+
+      if (packSearch.trim()) {
+        const q = packSearch.trim().toLowerCase();
+        const label = isAll ? 'All Categories Mixed' : cat;
+        if (label.toLowerCase().includes(q)) return true;
+        return WordBank.wordsForCategory(cat).some(
+          (entry) =>
+            entry.word.toLowerCase().includes(q) ||
+            entry.genre.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [allCategories, packFilter, packSearch, state.favoritePacks]);
+
   // STEP 1: WELCOME
   if (state.setupStep === SetupWizardStep.WELCOME) {
     return (
@@ -790,25 +815,6 @@ export const GameSetupScreen: React.FC<GameSetupScreenProps> = ({
   }
 
   // STEP 5: WORD PACKS & CUSTOM WORDS
-  const allCategories = wordBankSnapshot.categories;
-  const filteredCategories = useMemo(() => {
-    return allCategories.filter((cat) => {
-      const isCustom = WordBank.isCustomCategory(cat);
-      const isAll = cat === CATEGORY_ALL;
-      const isFav = state.favoritePacks.has(cat);
-
-      if (packFilter === 'BUILTIN' && (isCustom || isAll)) return false;
-      if (packFilter === 'CUSTOM' && !isCustom) return false;
-      if (packFilter === 'FAVORITES' && !isFav) return false;
-
-      if (packSearch.trim()) {
-        const label = isAll ? 'All Categories Mixed' : cat;
-        return label.toLowerCase().includes(packSearch.trim().toLowerCase());
-      }
-      return true;
-    });
-  }, [allCategories, packFilter, packSearch, state.favoritePacks]);
-
   const peekEntries = peekCategory ? WordBank.wordsForCategory(peekCategory) : [];
   const peekIsCustom = peekCategory ? WordBank.isCustomCategory(peekCategory) : false;
 
@@ -899,96 +905,121 @@ export const GameSetupScreen: React.FC<GameSetupScreenProps> = ({
 
       {/* Pack Cards */}
       <div className="mt-4 space-y-2.5">
-        {filteredCategories.map((cat) => {
-          const isAll = cat === CATEGORY_ALL;
-          const isCustom = WordBank.isCustomCategory(cat);
-          const count = WordBank.wordsForCategory(cat).length;
-          const selected = state.selectedCategory === cat;
-          const isFav = state.favoritePacks.has(cat);
-
-          return (
-            <div
-              key={cat}
-              onClick={() => onSetCategory(cat)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSetCategory(cat);
-                }
+        {filteredCategories.length === 0 ? (
+          <div className="rounded-3xl border border-[#423554] bg-[#241C2F] p-6 text-center">
+            <p className="text-sm font-bold text-[#F7F2EC]">
+              No packs match your current filter.
+            </p>
+            <p className="mt-1 text-xs text-[#887B9B]">
+              Clear your search or switch back to All packs to continue.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setPackSearch('');
+                setPackFilter('ALL');
               }}
-              className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border p-4 transition ${
-                selected
-                  ? 'border-[#F4CD6C] bg-[#3A2F17]/50 shadow-[0_0_20px_rgba(244,205,108,0.14)]'
-                  : 'border-[#423554] bg-[#241C2F] hover:border-[#F4CD6C]/45'
-              }`}
+              className="mt-4 rounded-xl bg-[#F4CD6C] px-4 py-2 text-xs font-extrabold text-[#1D1626]"
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${
-                    selected
-                      ? 'border-[#F4CD6C] bg-[#F4CD6C] text-[#1D1626]'
-                      : 'border-[#423554] bg-[#16101E] text-[#F4CD6C]'
-                  }`}
-                >
-                  {isCustom ? (
-                    <Crown className="h-5 w-5" />
-                  ) : (
-                    <Layers className="h-5 w-5" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate font-display text-base font-extrabold text-[#F7F2EC]">
-                      {isAll ? 'All Categories (Mixed)' : cat}
-                    </span>
-                    {isCustom && (
-                      <span className="rounded-md bg-[#F4CD6C]/20 px-1.5 py-0.5 font-mono-label text-[9px] font-bold uppercase text-[#F4CD6C]">
-                        Custom
-                      </span>
+              Show All Packs
+            </button>
+          </div>
+        ) : (
+          filteredCategories.map((cat) => {
+            const isAll = cat === CATEGORY_ALL;
+            const isCustom = WordBank.isCustomCategory(cat);
+            const count = WordBank.wordsForCategory(cat).length;
+            const selected = state.selectedCategory === cat;
+            const isFav = state.favoritePacks.has(cat);
+
+            return (
+              <div
+                key={cat}
+                onClick={() => onSetCategory(cat)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSetCategory(cat);
+                  }
+                }}
+                className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border p-4 transition ${
+                  selected
+                    ? 'border-[#F4CD6C] bg-[#3A2F17]/50 shadow-[0_0_20px_rgba(244,205,108,0.14)]'
+                    : 'border-[#423554] bg-[#241C2F] hover:border-[#F4CD6C]/45'
+                }`}
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${
+                      selected
+                        ? 'border-[#F4CD6C] bg-[#F4CD6C] text-[#1D1626]'
+                        : 'border-[#423554] bg-[#16101E] text-[#F4CD6C]'
+                    }`}
+                  >
+                    {isCustom ? (
+                      <Crown className="h-5 w-5" />
+                    ) : (
+                      <Layers className="h-5 w-5" />
                     )}
                   </div>
-                  <div className="text-xs font-medium text-[#887B9B]">
-                    {count} word{count === 1 ? '' : 's'}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-display text-base font-extrabold text-[#F7F2EC]">
+                        {isAll ? 'All Categories (Mixed)' : cat}
+                      </span>
+                      {isCustom && (
+                        <span className="rounded-md bg-[#F4CD6C]/20 px-1.5 py-0.5 font-mono-label text-[9px] font-bold uppercase text-[#F4CD6C]">
+                          Custom
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs font-medium text-[#887B9B]">
+                      {isAll
+                        ? `${count} words across ${WordBank.builtInCategories.length} genres`
+                        : isCustom && count === 0
+                        ? '0 words — tap New Word above to add'
+                        : `${count} word${count === 1 ? '' : 's'}`}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div
-                className="flex items-center gap-1.5"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  onClick={() => setPeekCategory(cat)}
-                  aria-label={`Peek inside ${cat}`}
-                  className="inline-flex items-center gap-1 rounded-xl border border-[#423554] bg-[#16101E] px-2.5 py-1.5 text-[11px] font-bold text-[#B7ABC8] hover:border-[#F4CD6C]/50 hover:text-[#F7F2EC]"
+                <div
+                  className="flex items-center gap-1.5"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Eye className="h-3.5 w-3.5" />
-                  <span>Peek</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onToggleFavoritePack(cat)}
-                  aria-label={`Favorite ${cat}`}
-                  className="rounded-xl p-2 text-[#887B9B] hover:bg-[#16101E]"
-                >
-                  <Heart
-                    className={`h-4 w-4 ${
-                      isFav ? 'fill-[#FF3E5B] text-[#FF3E5B]' : ''
-                    }`}
-                  />
-                </button>
-                {selected && (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F4CD6C] text-[#1D1626]">
-                    <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                  </span>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => setPeekCategory(cat)}
+                    aria-label={`Peek inside ${cat}`}
+                    className="inline-flex items-center gap-1 rounded-xl border border-[#423554] bg-[#16101E] px-2.5 py-1.5 text-[11px] font-bold text-[#B7ABC8] hover:border-[#F4CD6C]/50 hover:text-[#F7F2EC]"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    <span>Peek</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onToggleFavoritePack(cat)}
+                    aria-label={`Favorite ${cat}`}
+                    className="rounded-xl p-2 text-[#887B9B] hover:bg-[#16101E]"
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${
+                        isFav ? 'fill-[#FF3E5B] text-[#FF3E5B]' : ''
+                      }`}
+                    />
+                  </button>
+                  {selected && (
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F4CD6C] text-[#1D1626]">
+                      <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
       {/* Sticky Footer */}
@@ -1003,7 +1034,16 @@ export const GameSetupScreen: React.FC<GameSetupScreenProps> = ({
               Use All
             </button>
           )}
-          <GoldCtaButton text="Pass the phone" onClick={onStartRound} />
+          {WordBank.isCustomCategory(state.selectedCategory) &&
+          wordBankSnapshot.customWords.length === 0 ? (
+            <GoldCtaButton
+              text="Add custom word to start"
+              icon={<Plus className="h-5 w-5" />}
+              onClick={handleOpenAddCustomWord}
+            />
+          ) : (
+            <GoldCtaButton text="Pass the phone" onClick={onStartRound} />
+          )}
         </div>
       </div>
 
@@ -1062,7 +1102,16 @@ export const GameSetupScreen: React.FC<GameSetupScreenProps> = ({
 
               {peekEntries.length === 0 ? (
                 <div className="rounded-2xl border border-[#423554] bg-[#16101E] p-6 text-center text-sm text-[#887B9B]">
-                  No words in this pack yet.
+                  <p>No words in this pack yet.</p>
+                  {peekIsCustom && (
+                    <button
+                      type="button"
+                      onClick={handleOpenAddCustomWord}
+                      className="mt-3 rounded-xl bg-[#F4CD6C] px-4 py-2 text-xs font-extrabold text-[#1D1626]"
+                    >
+                      Add First Word
+                    </button>
+                  )}
                 </div>
               ) : (
                 peekEntries.map((entry) => (

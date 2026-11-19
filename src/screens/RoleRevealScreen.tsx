@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Eye, EyeOff, Lightbulb, RefreshCw, Sparkles } from 'lucide-react';
 import { CharacterAvatarThumbnail } from '../components/AvatarCardGraphics';
 import { GoldCtaButton } from '../components/ImpostorWizardComponents';
@@ -35,25 +35,12 @@ export const RoleRevealScreen: React.FC<RoleRevealScreenProps> = ({
   onSelectSaviorProtected,
   onSelectAgentPrediction,
 }) => {
-  const [lockSeconds, setLockSeconds] = useState(0);
-
   const player = state.players[state.revealPlayerIndex] ?? state.players[0];
+  const nextPlayer = state.players[state.revealPlayerIndex + 1];
   const isLastPlayer = state.revealPlayerIndex >= state.players.length - 1;
   const totalAgents = Math.max(0, state.players.length - state.impostorCount);
   const canReshuffle =
     state.revealPlayerIndex === 0 && !state.isRoleCardVisible;
-
-  useEffect(() => {
-    if (!state.isRoleCardVisible) {
-      setLockSeconds(0);
-      return;
-    }
-    setLockSeconds(3);
-    const id = window.setInterval(() => {
-      setLockSeconds((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [state.isRoleCardVisible, state.revealPlayerIndex]);
 
   if (!player) return null;
 
@@ -126,8 +113,8 @@ export const RoleRevealScreen: React.FC<RoleRevealScreenProps> = ({
         </div>
       </div>
 
-      {/* 3D Perspective Flip Card */}
-      <div className="perspective-1200 w-full">
+      {/* 3D Perspective Flip Card (keyed per player to prevent back-face flash on advance) */}
+      <div key={player.id} className="perspective-1200 w-full">
         <div
           onClick={!state.isRoleCardVisible ? handleFlipReveal : undefined}
           role={!state.isRoleCardVisible ? 'button' : undefined}
@@ -142,14 +129,21 @@ export const RoleRevealScreen: React.FC<RoleRevealScreenProps> = ({
                 }
               : undefined
           }
-          className={`transform-style-3d relative min-h-[340px] w-full transition-transform duration-700 ${
+          className={`transform-style-3d grid grid-cols-1 w-full transition-transform duration-500 ${
             state.isRoleCardVisible
               ? '[transform:rotateY(180deg)]'
               : 'cursor-pointer hover:scale-[1.01]'
           }`}
         >
           {/* Card Front Face (Hidden) */}
-          <div className="backface-hidden absolute inset-0 flex flex-col items-center justify-center rounded-3xl border-2 border-[#F4CD6C]/55 bg-gradient-to-br from-[#2C2339] via-[#241C2F] to-[#16101E] p-6 text-center shadow-2xl">
+          <div
+            aria-hidden={state.isRoleCardVisible}
+            className={`backface-hidden [grid-area:1/1] flex min-h-[340px] flex-col items-center justify-center rounded-3xl border-2 border-[#F4CD6C]/55 bg-gradient-to-br from-[#2C2339] via-[#241C2F] to-[#16101E] p-6 text-center shadow-2xl transition-opacity duration-300 ${
+              state.isRoleCardVisible
+                ? 'pointer-events-none z-0 opacity-0'
+                : 'z-10 opacity-100'
+            }`}
+          >
             <CharacterAvatarThumbnail
               character={character}
               pose={player.avatarPose}
@@ -174,7 +168,12 @@ export const RoleRevealScreen: React.FC<RoleRevealScreenProps> = ({
 
           {/* Card Back Face (Revealed) */}
           <div
-            className="backface-hidden [transform:rotateY(180deg)] absolute inset-0 flex flex-col justify-between rounded-3xl border-2 p-5 shadow-2xl"
+            aria-hidden={!state.isRoleCardVisible}
+            className={`backface-hidden [transform:rotateY(180deg)] [grid-area:1/1] flex min-h-[340px] flex-col justify-between rounded-3xl border-2 p-5 shadow-2xl transition-opacity duration-300 ${
+              state.isRoleCardVisible
+                ? 'z-10 opacity-100'
+                : 'pointer-events-none z-0 opacity-0'
+            }`}
             style={{
               borderColor: roleStyle.accent,
               background: `linear-gradient(160deg, ${roleStyle.deepSurface} 0%, #1D1626 60%, #16101E 100%)`,
@@ -226,7 +225,7 @@ export const RoleRevealScreen: React.FC<RoleRevealScreenProps> = ({
                   >
                     SECRET WORD
                   </div>
-                  <div className="mt-1 font-display text-3xl font-black text-[#F7F2EC]">
+                  <div className="mt-1 break-words font-display text-3xl font-black text-[#F7F2EC]">
                     {briefing?.secretWord ?? '—'}
                   </div>
                 </>
@@ -283,22 +282,19 @@ export const RoleRevealScreen: React.FC<RoleRevealScreenProps> = ({
       <div className="pt-1">
         {!state.isRoleCardVisible ? (
           <GoldCtaButton
-            text="Read your card first — Tap card to flip"
-            disabled
-            onClick={() => {}}
+            text="Tap to reveal role"
+            icon={<Eye className="h-5 w-5" />}
+            onClick={handleFlipReveal}
           />
         ) : (
           <GoldCtaButton
             text={
               isLastPlayer
-                ? lockSeconds > 0
-                  ? `Got it • start (${lockSeconds}s)`
-                  : 'Got it • start discussion'
-                : lockSeconds > 0
-                ? `Pass the phone (${lockSeconds}s)`
-                : 'Pass the phone'
+                ? 'Got it • start discussion'
+                : nextPlayer
+                ? `Hide & pass to ${nextPlayer.name}`
+                : 'Hide & pass the phone'
             }
-            disabled={lockSeconds > 0}
             onClick={onHideAndAdvance}
           />
         )}
