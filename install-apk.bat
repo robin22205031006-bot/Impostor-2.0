@@ -1,12 +1,19 @@
 @echo off
 setlocal
 
-set APK_PATH=app\build\outputs\apk\debug\app-debug.apk
+set APK_PATH=apk\Impostor.apk
+
+if not exist "%APK_PATH%" (
+  set APK_PATH=app\build\outputs\apk\debug\app-debug.apk
+)
 
 if not exist "%APK_PATH%" (
   echo APK not found. Building debug APK first...
   call npm run build
   call gradlew.bat assembleDebug
+  if not exist apk mkdir apk
+  copy /Y app\build\outputs\apk\debug\app-debug.apk apk\Impostor.apk >nul
+  set APK_PATH=apk\Impostor.apk
 )
 
 where adb >nul 2>nul

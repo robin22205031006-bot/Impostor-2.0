@@ -1,5 +1,5 @@
-import React from 'react';
-import { BellRing, Clock, Volume2, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BellRing, Clock, Download, Smartphone, Volume2, X } from 'lucide-react';
 import { GoldCtaButton, PlumTogglePill } from './ImpostorWizardComponents';
 
 interface SettingsMenuSheetProps {
@@ -27,6 +27,30 @@ export const SettingsMenuSheet: React.FC<SettingsMenuSheetProps> = ({
   onSetTurnDuration,
   onClose,
 }) => {
+  const [apkDownloadAvailable, setApkDownloadAvailable] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window === 'undefined') return;
+    if (window.location.hostname === 'appassets.androidplatform.net') return;
+
+    let cancelled = false;
+    fetch('/apk/Impostor.apk', { method: 'HEAD' })
+      .then((res) => {
+        if (!cancelled) {
+          const contentType = res.headers.get('content-type') || '';
+          const isHtmlFallback = contentType.includes('text/html');
+          setApkDownloadAvailable(res.ok && !isHtmlFallback);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setApkDownloadAvailable(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -155,6 +179,32 @@ export const SettingsMenuSheet: React.FC<SettingsMenuSheetProps> = ({
               </button>
             </div>
           </div>
+
+          {apkDownloadAvailable && (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#1AE682]/35 bg-[#122620] p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1AE682]/15 text-[#1AE682]">
+                  <Smartphone className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="font-display text-sm font-bold text-[#F7F2EC]">
+                    Android APK
+                  </div>
+                  <div className="text-xs text-[#9CD9BA]">
+                    Install Impostor.apk directly on Android
+                  </div>
+                </div>
+              </div>
+              <a
+                href="/apk/Impostor.apk"
+                download="Impostor.apk"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1AE682] px-3.5 py-2 text-xs font-extrabold text-[#0B1F16] transition hover:brightness-105"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Download</span>
+              </a>
+            </div>
+          )}
         </div>
 
         <div className="mt-6">

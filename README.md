@@ -14,11 +14,12 @@ A social-deduction party game built with **React**, **TypeScript**, **Vite**, an
 
 ## Install Directly to Android Device
 
-The debug APK is generated at:
+Pre-built APK packages are generated at:
+- `apk/Impostor.apk`
 - `app/build/outputs/apk/debug/app-debug.apk`
 
 ### Option 1: Copy APK to phone
-Transfer `app/build/outputs/apk/debug/app-debug.apk` to your Android phone and open it to install.
+Transfer `apk/Impostor.apk` (or `app/build/outputs/apk/debug/app-debug.apk`) to your Android phone and open it to install.
 
 ### Option 2: Install via USB Debugging (`adb`)
 ```bash
@@ -32,4 +33,5 @@ install-apk.bat         # Windows
 npm install
 npm run build
 ./gradlew assembleDebug
+cp app/build/outputs/apk/debug/app-debug.apk apk/Impostor.apk
 ```
